@@ -1,11 +1,3 @@
-app.py
-logic.py
-voice_input.py
-requirements.txt
-data/roles.json
-data/clue.json
-data/truth.txt
-data/system_prompt.txt
-data/stage_openings.jsonstreamlit>=1.32.0
+streamlit>=1.32.0
 openai>=1.10.0
 python-dotenv>=1.0.0
