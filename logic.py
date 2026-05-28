@@ -1,11 +1,16 @@
 import json
 import random
+import os
 
 class GameState:
     """游戏状态管理类"""
     
     def __init__(self):
         """初始化游戏状态，加载角色数据"""
+        # 获取当前文件所在目录
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"GameState 初始化，base_dir: {self.base_dir}")
+        
         self.roles_data = self._load_roles()
         self.clues_data = self._load_clues()
         self.stage_openings = self._load_stage_openings()
@@ -13,32 +18,46 @@ class GameState:
         self.ap_points = 10
         self.unlocked_clues = []
     
+    def _get_data_path(self, filename):
+        """获取数据文件的绝对路径"""
+        return os.path.join(self.base_dir, 'data', filename)
+    
     def _load_roles(self):
         """加载角色数据"""
         try:
-            with open('data/roles.json', 'r', encoding='utf-8') as f:
+            filepath = self._get_data_path('roles.json')
+            print(f"尝试加载角色数据: {filepath}")
+            print(f"文件是否存在: {os.path.exists(filepath)}")
+            
+            with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                return data.get('roles', [])
+                roles = data.get('roles', [])
+                print(f"成功加载角色数据，共 {len(roles)} 个角色")
+                return roles
         except Exception as e:
-            print(f"加载角色数据失败: {e}")
+            print(f"加载角色数据失败: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def _load_clues(self):
         """加载线索数据"""
         try:
-            with open('data/clue.json', 'r', encoding='utf-8') as f:
+            filepath = self._get_data_path('clue.json')
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"加载线索数据失败: {e}")
+            print(f"加载线索数据失败: {type(e).__name__}: {e}")
             return {}
     
     def _load_stage_openings(self):
         """加载阶段开场台词"""
         try:
-            with open('data/stage_openings.json', 'r', encoding='utf-8') as f:
+            filepath = self._get_data_path('stage_openings.json')
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"加载阶段开场台词失败: {e}")
+            print(f"加载阶段开场台词失败: {type(e).__name__}: {e}")
             return {}
     
     def get_stage_opening(self, stage):
@@ -164,9 +183,10 @@ class GameState:
             str: 真相复盘内容
         """
         try:
-            with open('data/truth.txt', 'r', encoding='utf-8') as f:
+            filepath = self._get_data_path('truth.txt')
+            with open(filepath, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
-            print(f"加载真相复盘失败: {e}")
+            print(f"加载真相复盘失败: {type(e).__name__}: {e}")
             return ""
 
