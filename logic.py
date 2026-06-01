@@ -11,6 +11,10 @@ class GameState:
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         print(f"GameState 初始化，base_dir: {self.base_dir}")
         
+        # 尝试多个可能的数据目录路径
+        self.data_dir = self._find_data_dir()
+        print(f"数据目录: {self.data_dir}")
+        
         self.roles_data = self._load_roles()
         self.clues_data = self._load_clues()
         self.stage_openings = self._load_stage_openings()
@@ -18,9 +22,28 @@ class GameState:
         self.ap_points = 10
         self.unlocked_clues = []
     
+    def _find_data_dir(self):
+        """查找数据目录，尝试多个可能的路径"""
+        possible_paths = [
+            os.path.join(self.base_dir, 'data'),
+            os.path.join(os.getcwd(), 'data'),
+            'data',
+            os.path.join(os.path.dirname(os.path.dirname(self.base_dir)), 'data'),
+        ]
+        
+        for path in possible_paths:
+            abs_path = os.path.abspath(path)
+            print(f"检查数据目录: {abs_path}")
+            if os.path.isdir(abs_path):
+                print(f"找到数据目录: {abs_path}")
+                return abs_path
+        
+        print(f"未找到数据目录，使用默认路径: {possible_paths[0]}")
+        return possible_paths[0]
+    
     def _get_data_path(self, filename):
         """获取数据文件的绝对路径"""
-        return os.path.join(self.base_dir, 'data', filename)
+        return os.path.join(self.data_dir, filename)
     
     def _load_roles(self):
         """加载角色数据"""
@@ -36,9 +59,19 @@ class GameState:
                 return roles
         except Exception as e:
             print(f"加载角色数据失败: {type(e).__name__}: {e}")
-            import traceback
-            traceback.print_exc()
-            return []
+            # 返回默认角色数据作为备用
+            return self._get_default_roles()
+    
+    def _get_default_roles(self):
+        """返回默认角色数据（备用方案）"""
+        print("使用默认角色数据")
+        return [
+            {"id": "lin_shen", "name": "林深", "profession": "结构工程师", "age": 26, "description": "严成的得意门生，技术纯粹，对导师有深厚感情。性格严谨但略显稚嫩。", "photo": "", "goal": "查明导师坠海真相，验证4号墩结构安全性，洗清自己的设计嫌疑。", "key_secrets": [], "scripts": {"act_1": "", "act_2": "", "act_3": ""}},
+            {"id": "gu_yuan", "name": "顾远", "profession": "岩土工程师", "age": 50, "description": "老牌技术专家，固执正直。与死者严成是多年老友。", "photo": "", "goal": "揭露地质数据造假，查明严成背叛理想的真相，保护大桥根基。", "key_secrets": [], "scripts": {"act_1": "", "act_2": "", "act_3": ""}},
+            {"id": "zhao_tai", "name": "赵泰", "profession": "甲方代表", "age": 30, "description": "资本代理人，极端理性，视工程为金钱游戏。心思缜密，精通物理逻辑。", "photo": "", "goal": "掩盖八百万贪污款项，将严成彻底封入桩基。", "key_secrets": [], "scripts": {"act_1": "", "act_2": "", "act_3": ""}},
+            {"id": "xia_he", "name": "夏禾", "profession": "造价工程师", "age": 24, "description": "职场精英，追求物欲。在金钱诱惑下沦为赵泰的共犯。", "photo": "", "goal": "平掉账目缺口，销毁监控证据，洗清自身关联。", "key_secrets": [], "scripts": {"act_1": "", "act_2": "", "act_3": ""}},
+            {"id": "su_xiao", "name": "苏晓", "profession": "材料实验员", "age": 23, "description": "职场新人，胆小且良知未泯。对严成心存感激。", "photo": "", "goal": "通过实验数据还原真相，寻找自我救赎。", "key_secrets": [], "scripts": {"act_1": "", "act_2": "", "act_3": ""}},
+        ]
     
     def _load_clues(self):
         """加载线索数据"""
