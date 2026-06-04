@@ -122,8 +122,13 @@ def main():
         for role in roles:
             col1, col2 = st.columns([1, 3])
             with col1:
-                # 使用图标代替头像，避免外部URL问题
-                st.write(f"👤 {role['name']}")
+                # 尝试显示角色照片，如果没有则显示图标
+                photo_path = role.get('photo', '')
+                if photo_path and os.path.exists(photo_path):
+                    st.image(photo_path, use_container_width=True, caption=role['name'])
+                else:
+                    # 如果没有照片或照片不存在，显示图标
+                    st.write(f"👤 {role['name']}")
             with col2:
                 st.markdown(f"### {role['name']}")
                 st.write(f"职业: {role['profession']}")
