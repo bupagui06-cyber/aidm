@@ -303,6 +303,23 @@ def main():
                     st.session_state.messages.append({"role": "assistant", "content": clue})
                     with st.chat_message("assistant"):
                         st.write(clue)
+            # 复盘阶段直接输出真相文本
+            elif st.session_state.game_state.current_stage == 4:
+                truth = st.session_state.game_state.get_truth()
+                if truth:
+                    truth_response = f"【复盘真相】\n\n{truth}"
+                    st.session_state.messages.append({"role": "assistant", "content": truth_response})
+                    with st.chat_message("assistant"):
+                        st.write(truth_response)
+                else:
+                    # 如果没有真相文本，调用AI
+                    with st.chat_message("assistant"):
+                        response_placeholder = st.empty()
+                        full_response = ""
+                        for chunk in generate_ai_response(final_input, st.session_state.selected_role):
+                            full_response = chunk
+                            response_placeholder.markdown(full_response)
+                        st.session_state.messages.append({"role": "assistant", "content": full_response})
             else:
                 # 调用AI生成回复（流式）
                 with st.chat_message("assistant"):
