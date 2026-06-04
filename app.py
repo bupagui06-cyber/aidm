@@ -120,9 +120,10 @@ def main():
         st.subheader("角色选择")
         roles = st.session_state.game_state.get_all_roles()
         for role in roles:
-            col1, col2 = st.columns([1, 2])
+            col1, col2 = st.columns([1, 3])
             with col1:
-                st.image(role.get('photo', 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + role['id']), use_container_width=True, caption=role['name'])
+                # 使用图标代替头像，避免外部URL问题
+                st.write(f"👤 {role['name']}")
             with col2:
                 st.markdown(f"### {role['name']}")
                 st.write(f"职业: {role['profession']}")
