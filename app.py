@@ -139,7 +139,7 @@ def generate_ai_response(user_input, selected_role_id):
             model=MODEL_NAME,
             messages=messages,
             temperature=0.7,
-            max_tokens=1000,
+            max_tokens=5000,
             stream=True
         )
         
