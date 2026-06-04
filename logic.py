@@ -77,11 +77,45 @@ class GameState:
         """加载线索数据"""
         try:
             filepath = self._get_data_path('clue.json')
+            print(f"尝试加载线索数据: {filepath}")
+            print(f"文件是否存在: {os.path.exists(filepath)}")
+            
             with open(filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                data = json.load(f)
+                print(f"成功加载线索数据，共 {sum(len(clues) for clues in data.values())} 条线索")
+                return data
         except Exception as e:
             print(f"加载线索数据失败: {type(e).__name__}: {e}")
-            return {}
+            # 返回默认线索数据作为备用
+            return self._get_default_clues()
+    
+    def _get_default_clues(self):
+        """返回默认线索数据（备用方案）"""
+        print("使用默认线索数据")
+        return {
+            "scene_clues": [
+                {"id": "场01", "name": "断裂的A支点钢钎", "description": "断面极其平整，没有受力拉伸的颈缩现象。切口边缘在灯光下有晶体状的反光。", "logic_hint": "证明是脆性断裂，指向超低温影响。", "ap_cost": 1},
+                {"id": "场02", "name": "残留的白霜", "description": "在支架断裂的缝隙中，仍能看到一层未融化的白霜。", "logic_hint": "证明现场曾出现过极低温物体。", "ap_cost": 1},
+                {"id": "场03", "name": "平台监控摄像头", "description": "镜头完好，但保险丝有人为灼烧痕迹。", "logic_hint": "证明监控失效是人为破坏。", "ap_cost": 1},
+                {"id": "场04", "name": "泥浆池样本", "description": "泥浆呈现深灰色，质地极其粘稠。", "logic_hint": "解释了死者为何瞬间沉底。", "ap_cost": 1}
+            ],
+            "object_clues": [
+                {"id": "物01", "name": "蓝色金属罐（空）", "description": "罐体标注为工业液氮。", "logic_hint": "关键凶器。", "ap_cost": 2},
+                {"id": "物02", "name": "废料桶里的试块", "description": "混凝土试块压力值未达标。", "logic_hint": "揭露工程质量造假。", "ap_cost": 2},
+                {"id": "物03", "name": "微型手持磨光机", "description": "刀片上有金属碎屑。", "logic_hint": "证明钢钎被预先切割。", "ap_cost": 2},
+                {"id": "物04", "name": "领用记录", "description": "液氮罐钥匙被取走未还。", "logic_hint": "锁定作案准备时间线。", "ap_cost": 1}
+            ],
+            "document_clues": [
+                {"id": "文01", "name": "地勘复核报告", "description": "溶洞深度数据被缩减。", "logic_hint": "证明数据造假。", "ap_cost": 1},
+                {"id": "文02", "name": "转账底单", "description": "款项流向不明公司。", "logic_hint": "核心杀人动机。", "ap_cost": 1},
+                {"id": "文03", "name": "举报信残页", "description": "严成提到赵泰多次索要液氮钥匙。", "logic_hint": "反向锁定凶器。", "ap_cost": 2}
+            ],
+            "private_clues": [
+                {"id": "深01", "name": "计算器记录", "description": "钢钎临界承载力计算记录。", "logic_hint": "还原杀人陷阱。", "ap_cost": 2},
+                {"id": "深02", "name": "手机短信", "description": "赵泰指令夏禾拉闸的短信。", "logic_hint": "坐实预谋杀人。", "ap_cost": 3},
+                {"id": "深03", "name": "金属碎片", "description": "带有冷脆纹路的金属碎片。", "logic_hint": "证明液氮冷脆存在。", "ap_cost": 2}
+            ]
+        }
     
     def _load_stage_openings(self):
         """加载阶段开场台词"""
