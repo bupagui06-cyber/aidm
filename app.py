@@ -122,13 +122,35 @@ def main():
         for role in roles:
             col1, col2 = st.columns([1, 3])
             with col1:
-                # 尝试显示角色照片，如果没有则显示图标
+                # 尝试显示角色照片，如果没有则显示占位符
                 photo_path = role.get('photo', '')
-                if photo_path and os.path.exists(photo_path):
-                    st.image(photo_path, use_container_width=True, caption=role['name'])
+                found_path = None
+                
+                # 尝试多个可能的路径
+                possible_paths = [
+                    photo_path,
+                    os.path.join('data', 'images', f"{role['id']}.png"),
+                    os.path.join('data', 'images', f"{role['id']}.jpg"),
+                    os.path.join('data', 'images', f"{role['id']}.jpeg"),
+                    f"data/images/{role['id']}.png",
+                    f"images/{role['id']}.png"
+                ]
+                
+                for path in possible_paths:
+                    if path and os.path.exists(path):
+                        found_path = path
+                        break
+                
+                if found_path:
+                    st.image(found_path, use_container_width=True, caption=role['name'])
                 else:
-                    # 如果没有照片或照片不存在，显示图标
-                    st.write(f"👤 {role['name']}")
+                    # 如果没有照片，使用简单的头像显示
+                    st.markdown(f"""
+                    <div style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">
+                        {role['name'][0]}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.caption(role['name'])
             with col2:
                 st.markdown(f"### {role['name']}")
                 st.write(f"职业: {role['profession']}")
