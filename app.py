@@ -35,6 +35,13 @@ def init_session_state():
     """初始化游戏状态"""
     if 'game_state' not in st.session_state:
         st.session_state.game_state = GameState()
+        print("初始化新的游戏状态")
+    else:
+        print("使用已存在的游戏状态")
+    
+    roles = st.session_state.game_state.get_all_roles()
+    print(f"角色数量: {len(roles)}")
+    
     if 'messages' not in st.session_state:
         st.session_state.messages = []
     if 'selected_role' not in st.session_state:
@@ -43,6 +50,13 @@ def init_session_state():
         st.session_state.welcome_message_sent = False
     if 'last_stage' not in st.session_state:
         st.session_state.last_stage = 1
+    
+    # 状态一致性检查：如果没有选择角色，重置到第一阶段
+    if not st.session_state.selected_role and st.session_state.game_state.current_stage > 1:
+        print("状态不一致：没有选择角色但阶段>1，重置阶段")
+        st.session_state.game_state.current_stage = 1
+        st.session_state.game_state.ap_points = 10
+        st.session_state.game_state.unlocked_clues = []
 
 # 检查是否触发搜证条件
 def check_search_trigger(user_input):
@@ -66,9 +80,12 @@ def generate_ai_response(user_input, selected_role_id):
         
         # 构建系统提示
         try:
-            with open('data/system_prompt.txt', 'r', encoding='utf-8') as f:
+            import os
+            prompt_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'system_prompt.txt')
+            with open(prompt_path, 'r', encoding='utf-8') as f:
                 system_prompt = f.read()
         except Exception as e:
+            print(f"加载系统提示失败: {e}")
             system_prompt = "你是零号监理，性格冷酷、客观，严格遵守物理定律。"
         
         # 获取角色提示
@@ -82,19 +99,24 @@ def generate_ai_response(user_input, selected_role_id):
         role_name = role_info.get('name', '玩家') if role_info else '玩家'
         
         # 添加角色称呼信息
-        system_prompt += f"\n\n当前玩家角色：{role_name}"
+        system_prompt += f"\n\n【当前玩家角色】：{role_name}"
         
-        # 如果有角色提示，添加到系统提示中
+        # 如果有角色提示，添加到系统提示中（强调这是玩家的剧本内容）
         if character_hint:
-            system_prompt += f"\n\n当前玩家角色提示：{character_hint}"
+            system_prompt += f"\n\n【{role_name}的剧本内容】：{character_hint}"
+        
+        # 如果有角色的key_secrets，也添加进去
+        if role_info and 'key_secrets' in role_info:
+            secrets = "\n".join(role_info['key_secrets'])
+            system_prompt += f"\n\n【{role_name}的关键秘密】：{secrets}"
         
         # 添加当前游戏阶段信息
         current_stage = st.session_state.game_state.current_stage
         stage_name = GAME_PHASES.get(current_stage, "未知阶段")
-        system_prompt += f"\n\n当前游戏阶段：第{current_stage}阶段 - {stage_name}"
+        system_prompt += f"\n\n【当前游戏阶段】：第{current_stage}阶段 - {stage_name}"
         
         # 添加称呼指令
-        system_prompt += f"\n\n指令：请直接称呼玩家为'{role_name}'，不要让玩家再告诉你他是谁。"
+        system_prompt += f"\n\n【指令】：请直接称呼玩家为'{role_name}'，不要让玩家再告诉你他是谁。严格按照剧本内容进行游戏，不要编造信息。"
         
         # 第四阶段添加真相
         if current_stage == 4:
