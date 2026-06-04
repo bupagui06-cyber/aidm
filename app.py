@@ -88,12 +88,6 @@ def generate_ai_response(user_input, selected_role_id):
             print(f"加载系统提示失败: {e}")
             system_prompt = "你是零号监理，性格冷酷、客观，严格遵守物理定律。"
         
-        # 获取角色提示
-        character_hint = st.session_state.game_state.get_character_hint(
-            selected_role_id, 
-            st.session_state.game_state.current_stage
-        )
-        
         # 获取角色信息
         role_info = st.session_state.game_state.get_role_by_id(selected_role_id)
         role_name = role_info.get('name', '玩家') if role_info else '玩家'
@@ -101,14 +95,34 @@ def generate_ai_response(user_input, selected_role_id):
         # 添加角色称呼信息
         system_prompt += f"\n\n【当前玩家角色】：{role_name}"
         
-        # 如果有角色提示，添加到系统提示中（强调这是玩家的剧本内容）
-        if character_hint:
-            system_prompt += f"\n\n【{role_name}的剧本内容】：{character_hint}"
+        # ========== 传递所有角色的完整剧本信息给AI ==========
+        all_roles = st.session_state.game_state.get_all_roles()
+        system_prompt += "\n\n【所有角色剧本信息】："
+        for role in all_roles:
+            role_id = role.get('id', '')
+            role_name_full = role.get('name', '')
+            profession = role.get('profession', '')
+            description = role.get('description', '')
+            goal = role.get('goal', '')
+            secrets = "\n".join(role.get('key_secrets', []))
+            scripts = role.get('scripts', {})
+            
+            system_prompt += f"\n\n--- {role_name_full} ({profession}) ---"
+            system_prompt += f"\n描述：{description}"
+            system_prompt += f"\n目标：{goal}"
+            system_prompt += f"\n关键秘密：{secrets}"
+            if scripts:
+                system_prompt += f"\n剧本："
+                for act, content in scripts.items():
+                    system_prompt += f"\n  {act}：{content}"
         
-        # 如果有角色的key_secrets，也添加进去
-        if role_info and 'key_secrets' in role_info:
-            secrets = "\n".join(role_info['key_secrets'])
-            system_prompt += f"\n\n【{role_name}的关键秘密】：{secrets}"
+        # ========== 传递当前玩家角色的线索（用于提示玩家） ==========
+        character_hint = st.session_state.game_state.get_character_hint(
+            selected_role_id, 
+            st.session_state.game_state.current_stage
+        )
+        if character_hint:
+            system_prompt += f"\n\n【{role_name}当前阶段提示】：{character_hint}"
         
         # 添加当前游戏阶段信息
         current_stage = st.session_state.game_state.current_stage
@@ -116,7 +130,14 @@ def generate_ai_response(user_input, selected_role_id):
         system_prompt += f"\n\n【当前游戏阶段】：第{current_stage}阶段 - {stage_name}"
         
         # 添加称呼指令
-        system_prompt += f"\n\n【指令】：请直接称呼玩家为'{role_name}'，不要让玩家再告诉你他是谁。严格按照剧本内容进行游戏，不要编造信息。"
+        system_prompt += f"\n\n【指令】：请直接称呼玩家为'{role_name}'，不要让玩家再告诉你他是谁。"
+        system_prompt += "\n\n【核心规则】："
+        system_prompt += "\n1. 你作为DM，知道所有角色的秘密和真相，但必须严格按照游戏阶段引导玩家"
+        system_prompt += "\n2. 所有回答必须基于提供的剧本内容，绝对禁止编造信息"
+        system_prompt += "\n3. 如果玩家询问剧本中没有的内容，回答：'暂无相关信息'"
+        system_prompt += "\n4. 严格按照游戏阶段进行，不要提前透露后续阶段的内容"
+        system_prompt += "\n5. 在第四阶段之前，绝对不要透露凶手身份和完整作案手法"
+        system_prompt += "\n6. 你可以根据玩家的推理给出适当的提示，但不能直接告诉答案"
         
         # 第四阶段添加真相
         if current_stage == 4:
