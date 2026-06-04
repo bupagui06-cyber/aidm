@@ -136,6 +136,18 @@ def main():
     else:
         st.subheader("对话区")
         
+        # 选择角色后自动发送开场消息
+        if not st.session_state.welcome_message_sent:
+            opening = st.session_state.game_state.get_stage_opening(current_stage)
+            if opening:
+                st.session_state.messages.append({"role": "assistant", "content": opening})
+            else:
+                # 如果没有开场台词，发送默认开场
+                default_opening = "欢迎来到《桩基础谜案》。我是零号监理。当前阶段：搜证。请输入搜证指令，如'搜查现场'、'查看断裂口'等。"
+                st.session_state.messages.append({"role": "assistant", "content": default_opening})
+            st.session_state.welcome_message_sent = True
+            st.rerun()
+        
         for msg in st.session_state.messages:
             with st.chat_message(msg['role']):
                 st.write(msg['content'])
@@ -151,18 +163,25 @@ def main():
                 st.write(final_input)
             
             # 搜证阶段处理
-            if check_search_trigger(final_input) and current_stage == 1:
-                clue = st.session_state.game_state.unlock_clue(final_input)
-                if isinstance(clue, dict):
-                    ai_response = f"你发现了新线索：\n\n**{clue['name']}**\nID: {clue['id']}\n描述: {clue['description']}\n\n消耗了 {clue['ap_cost']} 点AP。"
-                    st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                    with st.chat_message("assistant"):
-                        st.write(ai_response)
-                    st.rerun()
+            if current_stage == 1:
+                if check_search_trigger(final_input):
+                    clue = st.session_state.game_state.unlock_clue(final_input)
+                    if isinstance(clue, dict):
+                        ai_response = f"你发现了新线索：\n\n**{clue['name']}**\nID: {clue['id']}\n描述: {clue['description']}\n\n消耗了 {clue['ap_cost']} 点AP。"
+                        st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                        with st.chat_message("assistant"):
+                            st.write(ai_response)
+                        st.rerun()
+                    else:
+                        st.session_state.messages.append({"role": "assistant", "content": clue})
+                        with st.chat_message("assistant"):
+                            st.write(clue)
                 else:
-                    st.session_state.messages.append({"role": "assistant", "content": clue})
+                    # 非搜证问题，直接返回固定提示，不调用AI
+                    search_prompt = "请输入搜证指令，如'搜查现场'、'查看断裂口'、'寻找液氮罐'等。"
+                    st.session_state.messages.append({"role": "assistant", "content": search_prompt})
                     with st.chat_message("assistant"):
-                        st.write(clue)
+                        st.write(search_prompt)
             # 复盘阶段：直接输出真相文件内容
             elif current_stage == 4:
                 truth = st.session_state.game_state.get_truth()
