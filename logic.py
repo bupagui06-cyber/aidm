@@ -267,9 +267,42 @@ class GameState:
         """
         try:
             filepath = self._get_data_path('truth.txt')
+            print(f"尝试加载真相文件: {filepath}")
+            print(f"文件是否存在: {os.path.exists(filepath)}")
+            
+            if not os.path.exists(filepath):
+                alternative_paths = [
+                    'data/truth.txt',
+                    '../data/truth.txt',
+                    './truth.txt'
+                ]
+                for alt_path in alternative_paths:
+                    if os.path.exists(alt_path):
+                        filepath = alt_path
+                        print(f"找到替代路径: {filepath}")
+                        break
+            
             with open(filepath, 'r', encoding='utf-8') as f:
-                return f.read()
+                content = f.read()
+                print(f"成功加载真相文件，内容长度: {len(content)}")
+                return content
         except Exception as e:
             print(f"加载真相复盘失败: {type(e).__name__}: {e}")
-            return ""
+            return """## 真相复盘
+
+### 凶手
+赵泰，总工程师。
+
+### 作案手法
+1. **液氮冷脆**：赵泰利用钢材在超低温下会变脆的物理特性，使用液氮冷冻钢钎，导致钢钎在受力时脆断。
+
+2. **泥浆比重陷阱**：泥浆比重被调整到1.52，远高于人体比重，导致受害者坠入后无法浮起。
+
+### 动机
+赵泰挪用了800万工程款，被严成发现，为了掩盖罪行而杀人灭口。
+
+### 时间线
+- 案发前一天：赵泰削弱钢钎截面
+- 案发当晚：使用液氮冷冻钢钎，引导严成到断裂点，断电触发断裂
+- 案发后：销毁证据，制造意外假象"""
 
