@@ -180,9 +180,8 @@ def main():
                 st.write(msg['content'])
         
         user_input = st.chat_input("")
-        voice_input = st.text_input("语音输入（测试）")
         
-        final_input = user_input or voice_input
+        final_input = user_input
         
         if final_input:
             st.session_state.messages.append({"role": "user", "content": final_input})
