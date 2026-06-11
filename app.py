@@ -155,7 +155,6 @@ def main():
                 st.markdown(f"### {role['name']}")
                 st.write(f"职业: {role['profession']}")
                 st.write(f"年龄: {role['age']}")
-                st.write(f"描述: {role['description']}")
                 if st.button(f"选择 {role['name']}", key=role['id']):
                     st.session_state.selected_role = role['id']
                     st.session_state.welcome_message_sent = False
