@@ -179,7 +179,7 @@ def main():
             with st.chat_message(msg['role']):
                 st.write(msg['content'])
         
-        user_input = st.chat_input("说吧")
+        user_input = st.chat_input("")
         voice_input = st.text_input("语音输入（测试）")
         
         final_input = user_input or voice_input
